@@ -150,8 +150,6 @@ html.js .tile:not(.is-in){opacity:0;transform:translate3d(0,14px,0)}
 .about__copy .h2{margin-bottom:.35em}
 .about__copy p{max-width:46ch;text-wrap:pretty}
 .about__copy p:not(.lede){color:var(--dim)}
-.rules{margin-top:.7em;max-width:46ch;border-top:1px solid var(--line)}
-.rules li{padding:13px 0;border-bottom:1px solid var(--line);font-weight:500}
 .about__photo{position:relative;aspect-ratio:1500/994;overflow:hidden;background:var(--raise)}
 .about__photo img{position:absolute;left:0;top:-6%;width:100%;height:112%;object-fit:cover;will-change:transform}
 

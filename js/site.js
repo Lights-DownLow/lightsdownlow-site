@@ -69,7 +69,7 @@ const price = s => String(s.price || '').replace(/–/g, '-');
 // One slide per upcoming show: its words bottom-left, its flyer alone on the right. With nothing booked, the newest flyer and a line saying so.
 const hero = $('#shows'), reel = $('#reel'), copy = $('#hero-copy'), tabs = $('#hero-tabs');
 const slides = upcoming.length ? upcoming.map(s => ({ s, k: flyerK(s) })) : [{ s: null, k: F.length ? 0 : -1 }];
-let items = [], tabBtns = [], tabLine = null, active = -1, panST = null, copyTimer = 0;
+let items = [], tabBtns = [], tabLine = null, active = -1, panST = null, panStops = [], copyTimer = 0;
 function copyHTML(s) {
   if (!s) return `<h2 class="hero__title" id="hero-title" style="--ts:.62">Nothing on the books right now</h2><p class="hero__sub">New shows land on Resident Advisor first.</p>` +
     `<p class="hero__cta"><a class="btn" href="https://ra.co/promoters/20694" target="_blank" rel="noopener">Follow on RA ${ARROW}</a></p>`;
@@ -105,7 +105,7 @@ function sizeReel() {
   moveLine(true);
 }
 function goTo(i) {
-  if (panST && lenis) lenis.scrollTo(panST.start + (panST.end - panST.start) * i / (slides.length - 1), { duration: 1 });
+  if (panST && lenis) lenis.scrollTo(panST.start + (panST.end - panST.start) * panStops[i], { duration: 1 });
   else { const n = items[i]; reel.scrollTo({ left: n.offsetLeft - (reel.clientWidth - n.offsetWidth) / 2, behavior: RM ? 'auto' : 'smooth' }); setActive(i, true); }
 }
 function renderHero() {
@@ -143,8 +143,19 @@ function renderHero() {
   gsap.matchMedia().add('(min-width: 861px)', () => {
     hero.classList.add('is-pan'); reel.scrollLeft = 0; sizeReel();
     const n = slides.length;
+    // the scroll track, in screen heights: each show holds for a beat, then the next one travels in.
+    // the last show holds longest, so the page does not drop to the archive the moment it arrives.
+    const MOVE = .9, hold = slides.map((_, i) => i === 0 ? .22 : i === n - 1 ? .45 : .3);
+    const track = hold.reduce((a, h) => a + h, 0) + MOVE * (n - 1);
+    panStops = hold.map((h, i) => i === 0 ? 0 : (hold.slice(0, i).reduce((a, v) => a + v, 0) + MOVE * i + h * .3) / track);
+    const where = p => {                                             // scroll progress -> which show, with fractions while travelling
+      let s = p * track - hold[0];
+      if (s <= 0) return 0;
+      for (let i = 1; i < n; i++) { if (s < MOVE) return i - 1 + rest(s / MOVE); s -= MOVE; if (s <= hold[i]) return i; s -= hold[i]; }
+      return n - 1;
+    };
     const draw = p => {
-      const raw = p * (n - 1), b = Math.min(n - 2, Math.floor(raw)), P = b + rest(raw - b), W = reel.clientWidth;
+      const P = where(p), W = reel.clientWidth;
       items.forEach((node, i) => {
         const o = i - P;
         const x = o <= 0 ? o * W * .34 : Math.min(o, 1.6) * W * .46;                        // leaves to the left, waits at the right edge
@@ -155,9 +166,9 @@ function renderHero() {
       });
       setActive(Math.round(P), true);
     };
-    panST = ScrollTrigger.create({ trigger: hero, start: 'top top', end: () => '+=' + Math.round(innerHeight * .9 * (n - 1)), pin: true, anticipatePin: 1, invalidateOnRefresh: true, onUpdate: s => draw(s.progress), onRefresh: s => draw(s.progress) });
+    panST = ScrollTrigger.create({ trigger: hero, start: 'top top', end: () => '+=' + Math.round(innerHeight * track), pin: true, anticipatePin: 1, invalidateOnRefresh: true, onUpdate: s => draw(s.progress), onRefresh: s => draw(s.progress) });
     draw(panST.progress);
-    return () => { panST.kill(); panST = null; hero.classList.remove('is-pan'); items.forEach(node => { ['--x', '--s', '--a'].forEach(v => node.style.removeProperty(v)); node.style.visibility = ''; }); sizeReel(); };
+    return () => { panST.kill(); panST = null; panStops = []; hero.classList.remove('is-pan'); items.forEach(node => { ['--x', '--s', '--a'].forEach(v => node.style.removeProperty(v)); node.style.visibility = ''; }); sizeReel(); };
   });
 }
 function intro() {
