@@ -386,7 +386,7 @@ function initPage() {
       lf.append(f, alt);
     } else {
       const d = document.createElement('div'); d.className = 'list__draft';
-      d.innerHTML = '<p>Draft preview only: the Laylo sign-up form for phone and email loads here on the live site.</p>' + (user ? `<a class="btn" href="${page}" target="_blank" rel="noopener">Open Laylo</a>` : '');
+      d.innerHTML = '<p>Draft preview only: the Cymbal sign-up form for phone and email loads here on the live site.</p>' + (user ? `<a class="btn" href="${page}" target="_blank" rel="noopener">Open Laylo</a>` : '');
       lf.append(d);
     }
   }
