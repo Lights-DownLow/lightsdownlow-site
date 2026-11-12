@@ -217,12 +217,11 @@ function renderArchive() {
   const byYear = new Map();
   F.forEach((f, k) => { if (!byYear.has(f.y)) byYear.set(f.y, []); byYear.get(f.y).push({ node: makeTile(f, k), ratio: f.h / f.w }); });
   const years = [...byYear.keys()].sort((a, b) => b - a);
-  $('#archive-count').textContent = `${F.length} flyers, ${years[years.length - 1]} to ${years[0]}. Newest first.`;
   const nav = $('#years-nav');
   nav.innerHTML = years.map(y => `<a href="#y-${y}">${y}</a>`).join('');
   for (const y of years) {
     const items = byYear.get(y), n = items.length;
-    const sec = el('section', 'year', `<div class="year__head"><h3 class="year__num" id="yh-${y}">${y}</h3><p class="year__count">${n} flyer${n > 1 ? 's' : ''}</p></div><div class="cols"></div>`);
+    const sec = el('section', 'year', `<div class="year__head"><h3 class="year__num" id="yh-${y}">${y}</h3></div><div class="cols"></div>`);
     sec.id = 'y-' + y; sec.setAttribute('aria-labelledby', 'yh-' + y);
     yearsHost.append(sec);
     const Y = { y, sec, cols: $('.cols', sec), items, st: [] };
@@ -280,7 +279,7 @@ function setMedia() {
   const old = $('video', vMedia); if (old) old.remove();
   vImg.src = thumb;
   const big = new Image(); big.src = large;
-  (big.decode ? big.decode() : Promise.resolve()).then(() => { if (vk === k) vImg.src = large; }).catch(() => { if (vk === k) vImg.src = large; });
+  (big.decode ? big.decode() : Promise.resolve()).then(() => { if (vk === k) vImg.src = large; }).catch(() => {});   // a large file that fails to load leaves the thumbnail in place
   if (f.v) {
     const v = el('video'); v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.autoplay = !RM; v.controls = RM; v.poster = thumb; v.src = `f/v/${id3(f.n)}.mp4`;
     vMedia.append(v);
