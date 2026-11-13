@@ -385,7 +385,7 @@ function initPage() {
   const list = $('#list'), lf = $('#list-form');
   if (list && lf) {
     const url = (list.dataset.signup || '').trim(), page = +list.dataset.cymbalPage, form = +list.dataset.cymbalForm;
-    const button = () => { lf.innerHTML = `<a class="btn" href="${url}" target="_blank" rel="noopener">Sign up ${ARROW}</a>`; };
+    const button = () => { lf.classList.remove('list__form--cymbal'); lf.innerHTML = `<a class="btn" href="${url}" target="_blank" rel="noopener">Sign up ${ARROW}</a>`; };
     if (!url) { list.hidden = true; navLinks.forEach(a => { if (a.getAttribute('href') === '#list') a.hidden = true; }); }
     else if (document.documentElement.hasAttribute('data-live') && page && form) {
       lf.classList.add('list__form--cymbal');
