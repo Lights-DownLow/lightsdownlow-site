@@ -58,6 +58,7 @@ const shows = [...D.shows].sort((a, b) => a.date < b.date ? -1 : 1);
 const upcoming = shows.filter(isUpcoming);
 const next = upcoming[0] || null;
 const F = D.flyers, id3 = n => String(n).padStart(3, '0');
+const FV = '?v=2';   // bump to make browsers fetch flyer files again (a copy cached during the domain switch broke one)
 const FK = new Map(F.map((f, k) => [f.n, k]));                       // flyer file number -> place on the wall
 const flyerK = s => s && s.f != null && FK.has(s.f) ? FK.get(s.f) : -1;
 const showTitle = s => s.name || s.head.join(' + ');
@@ -115,7 +116,7 @@ function renderHero() {
       const f = F[k]; n = el('button', 'reel__item'); n.type = 'button'; n.dataset.k = k;
       n.style.cssText = `--ar:${f.w}/${f.h};--c:${f.c}`;
       n.setAttribute('aria-label', `Flyer for ${s ? showLabel(s) : 'the most recent show'}. Open larger.`);
-      n.innerHTML = `<img src="f/l/${id3(f.n)}.webp" alt="" decoding="async" draggable="false">`;
+      n.innerHTML = `<img src="f/l/${id3(f.n)}.webp${FV}" alt="" decoding="async" draggable="false">`;
     } else n = el('div', 'reel__item reel__item--none', '<span>Flyer to come</span>');
     n.dataset.i = j;
     return n;
@@ -190,10 +191,10 @@ function makeTile(f, k) {
   img.alt = ''; img.loading = 'lazy'; img.decoding = 'async'; img.width = f.w; img.height = f.h; img.className = 'is-loading';
   img.addEventListener('load', () => img.classList.remove('is-loading'), { once: true });
   img.addEventListener('error', () => img.classList.remove('is-loading'), { once: true });
-  img.src = `f/t/${id3(f.n)}.webp`;
+  img.src = `f/t/${id3(f.n)}.webp${FV}`;
   if (img.complete) img.classList.remove('is-loading');
   b.append(img);
-  if (f.v && !RM) b.dataset.v = `f/v/${id3(f.n)}.mp4`;
+  if (f.v && !RM) b.dataset.v = `f/v/${id3(f.n)}.mp4${FV}`;
   tiles[k] = b;
   return b;
 }
@@ -275,19 +276,19 @@ function place() {
   vMedia.style.transform = tf(vRect);
 }
 function setMedia() {
-  const f = F[vk], k = vk, thumb = `f/t/${id3(f.n)}.webp`, large = `f/l/${id3(f.n)}.webp`;
+  const f = F[vk], k = vk, thumb = `f/t/${id3(f.n)}.webp${FV}`, large = `f/l/${id3(f.n)}.webp${FV}`;
   const old = $('video', vMedia); if (old) old.remove();
   vImg.src = thumb;
   const big = new Image(); big.src = large;
   (big.decode ? big.decode() : Promise.resolve()).then(() => { if (vk === k) vImg.src = large; }).catch(() => {});   // a large file that fails to load leaves the thumbnail in place
   if (f.v) {
-    const v = el('video'); v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.autoplay = !RM; v.controls = RM; v.poster = thumb; v.src = `f/v/${id3(f.n)}.mp4`;
+    const v = el('video'); v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.autoplay = !RM; v.controls = RM; v.poster = thumb; v.src = `f/v/${id3(f.n)}.mp4${FV}`;
     vMedia.append(v);
   }
   vYear.textContent = f.y; vCount.textContent = `${k + 1} / ${F.length}`;
   vPrev.disabled = k === 0; vNext.disabled = k === F.length - 1;
   vPrev.style.visibility = k === 0 ? 'hidden' : ''; vNext.style.visibility = k === F.length - 1 ? 'hidden' : '';
-  [k - 1, k + 1].forEach(i => { if (F[i]) { const p = new Image(); p.src = `f/l/${id3(F[i].n)}.webp`; } });
+  [k - 1, k + 1].forEach(i => { if (F[i]) { const p = new Image(); p.src = `f/l/${id3(F[i].n)}.webp${FV}`; } });
 }
 function openViewer(k, src) {
   if (vBusy || viewer.open) return;
