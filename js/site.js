@@ -380,26 +380,25 @@ function initPage() {
   }), { rootMargin: '-40% 0px -55% 0px' });
   ['shows', 'list', 'archive', 'about'].forEach(i => { const n = document.getElementById(i); if (n) so.observe(n); });
 
-  // sign-up: Laylo's own form (phone and email). The draft preview cannot load other sites' frames, so it shows a note instead.
+  // sign-up: Cymbal's own form (name, email, phone) on the live site. Cymbal draws it in a frame, so its
+  // colours are set in Cymbal's builder. The draft preview cannot load other sites' scripts, so it gets a button to the same page.
   const list = $('#list'), lf = $('#list-form');
   if (list && lf) {
-    const user = (list.dataset.laylo || '').trim(), live = document.documentElement.hasAttribute('data-live');
-    const page = user ? 'https://laylo.com/' + encodeURIComponent(user) : '';
-    if (live && !user) { list.hidden = true; navLinks.forEach(a => { if (a.getAttribute('href') === '#list') a.hidden = true; }); }
-    else if (live) {
-      const f = document.createElement('iframe');
-      f.src = page + '/profile/embed?theme=dark&background=transparent';
-      f.title = 'Sign up for Lights Down Low texts and emails'; f.loading = 'lazy';
-      f.setAttribute('scrolling', 'no'); f.setAttribute('allowtransparency', 'true');
-      const alt = document.createElement('p'); alt.className = 'list__alt';
-      alt.innerHTML = `Form not showing? <a class="link" href="${page}" target="_blank" rel="noopener">Sign up on Laylo</a>.`;
-      lf.append(f, alt);
-    } else {
-      const d = document.createElement('div'); d.className = 'list__draft';
-      d.innerHTML = '<p>Draft preview only: the Cymbal sign-up form for phone and email loads here on the live site.</p>' + (user ? `<a class="btn" href="${page}" target="_blank" rel="noopener">Open Laylo</a>` : '');
-      lf.append(d);
-    }
+    const url = (list.dataset.signup || '').trim(), page = +list.dataset.cymbalPage, form = +list.dataset.cymbalForm;
+    const button = () => { lf.innerHTML = `<a class="btn" href="${url}" target="_blank" rel="noopener">Sign up ${ARROW}</a>`; };
+    if (!url) { list.hidden = true; navLinks.forEach(a => { if (a.getAttribute('href') === '#list') a.hidden = true; }); }
+    else if (document.documentElement.hasAttribute('data-live') && page && form) {
+      lf.classList.add('list__form--cymbal');
+      lf.innerHTML = '<div id="cymbal-form-widget-46250133"></div>';
+      const sc = document.createElement('script');
+      sc.src = 'https://cymb.co/production/scripts/lego-form-widget/v1/index.min.js';
+      sc.onload = () => { try { window.LegoFormWidget.create({ pageId: page, atomFormId: form, elementId: 'cymbal-form-widget-46250133' }); } catch (e) { button(); } };
+      sc.onerror = button;
+      document.body.append(sc);
+    } else button();
   }
+
+
 
   // section openings rise into place once
   $$('.head > *, .list__copy > *, .list__form, .about__copy > *, .about__photo').forEach(n => { n.setAttribute('data-rise', ''); n.style.setProperty('--i', n.matches('.head > *, .list__copy > *, .about__copy > *') ? [...n.parentElement.children].indexOf(n) : 0); });
